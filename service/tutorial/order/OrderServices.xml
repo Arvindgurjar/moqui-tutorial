@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://moqui.org/xsd/service-definition-2.1.xsd">
+
+    <!-- Sample service to get Order Header details by statusId using Entity Find -->
+    <service verb="get" noun="OrderHeadersByStatus">
+        <description>
+            Service to get OrderHeader records based on the given statusId.
+        </description>
+        <in-parameters>
+            <parameter name="statusId" default-value="OrderApproved">
+                <description>The status for the Order Header. If no value is provided,
+                    the default value for statusId will be "OrderApproved."</description>
+            </parameter>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="ordersList"/>
+        </out-parameters>
+        <actions>
+            <!-- Find OrderHeader records -->
+            <entity-find entity-name="mantle.order.OrderHeader" list="ordersList">
+                <econdition field-name="statusId"/>
+            </entity-find>
+
+            <!-- The ordersList will be returned as the output. -->
+        </actions>
+    </service>
+
+<!--===============1===============-->
+    <service verb="get" noun="FemalePersons">
+        <out-parameters>
+            <parameter name="personsList"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.party.Person" list="personsList">
+                <econdition field-name="gender" value="F"></econdition>
+            </entity-find>
+
+        </actions>
+    </service>
+<!--=======================2=================-->
+    <service verb="get" noun="Persons">
+        <out-parameters>
+            <parameter name="personsList"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.party.Person" list="personsList">
+                <econdition field-name="maritalStatusEnumId" value="MarsMarried"></econdition>
+            </entity-find>
+        </actions>
+    </service>
+
+    <!--=================3==============-->
+    <service verb="get" noun="LatestOrders">
+        <out-parameters>
+            <parameter name="ordersList"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.order.OrderHeader" list="ordersList">
+                <order-by field-name="-placedDate"/>
+            </entity-find>
+        </actions>
+    </service>
+<!--====================4==========-->
+    <service verb="get" noun="Order">
+        <in-parameters>
+            <parameter name="orderId"/>
+        </in-parameters>
+        <out-parameters>
+            <parameter name="orderDetails"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.order.OrderHeader" list="orderDetails">
+                <econdition field-name="orderId" from="orderId"></econdition>
+            </entity-find>
+        </actions>
+    </service>
+<!--=================5==============-->
+    <service verb="get" noun="OrderHeaders">
+        <out-parameters>
+            <parameter name="orderHeaderDetails"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.order.OrderHeader" list="orderHeaderDetails">
+                <econdition field-name="grandTotal" operator="greater" value="50"></econdition>
+            </entity-find>
+        </actions>
+    </service>
+<!--    ==============6=================-->
+    <service verb="get" noun="OrderItems">
+        <out-parameters>
+            <parameter name="orderItemDetails"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.order.OrderItem" list="orderItemDetails">
+               <econditions conbine="and">
+                   <econdition field-name="orderId"  value="100102"></econdition>
+                   <econdition field-name="orderPartSeqId" value="01"></econdition>
+               </econditions>
+            </entity-find>
+        </actions>
+    </service>
+
+
+<!--    =======================7===================-->
+    <service verb="get" noun="OrderParts">
+        <out-parameters>
+            <parameter name="orderPartDetails"/>
+        </out-parameters>
+        <actions>
+            <entity-find entity-name="mantle.order.OrderPart" list="orderPartDetails">
+                    <econdition field-name="partTotal" operator="less-equals" value="20"></econdition>
+            </entity-find>
+        </actions>
+    </service>
+
+
+<!--    ==============8=============-->
+    <service verb="get" noun="OrderPartData">
+        <out-parameters>
+            <parameter name="orderPartDetails"/>
+        </out-parameters>
+        <actions>
+            <set field="orderPartDetails" from="[]"/>
+            <entity-find entity-name="mantle.order.OrderPart" list="orderPartDetails1">
+                <econdition field-name="facilityId" value="ZIRET_WH">
+                </econdition>
+            </entity-find>
+            <script>for (def enumEntry in orderPartDetails1)
+                orderPartDetails.add([orderId:"${enumEntry.orderId}",orderPartSeqId:"${enumEntry.orderPartSeqId}",facilityId:"${enumEntry.facilityId}",partName:"${enumEntry.partName}",customerPartyId:"${enumEntry.customerPartyId}"])</script>
+        </actions>
+    </service>
+
+<!--    ======================9=================-->
+
+    <service verb="get" noun="OrderPartsCount">
+        <out-parameters>
+            <parameter name="orderPartsCount"/>
+        </out-parameters>
+        <actions>
+            <entity-find-count entity-name="mantle.order.OrderPart" count-field="orderPartsCount">
+                <econdition field-name="customerPartyId" value="CustJqp">
+
+                </econdition>
+            </entity-find-count>
+        </actions>
+    </service>
+
+
+<!--    ======================10===========-->
+
+
+    <service verb="get" noun="OrderPartsInfo">
+        <out-parameters>
+            <parameter name="orderPartsList"/>
+        </out-parameters>
+        <actions>
+            <set field="orderPartsList" from="[]"/>
+            <entity-find entity-name="mantle.order.OrderPart" list="orderPartsList1">
+                <econditions >
+                    <econdition field-name="shipmentMethodEnumId" value="ShMthNextDay"/>
+                    <econdition field-name="facilityId"  value="ZIRET_WH"/>
+                </econditions>
+            </entity-find>
+            <script>for (def enumEntry in orderPartsList1)
+                {   def flag = 0;
+
+                for (def entry in orderPartsList)
+                {
+                if(entry.orderId==enumEntry.orderId){
+                        flag=1;
+                        break;
+                }
+                }
+                if(flag===0){
+                orderPartsList.add(enumEntry)
+                }
+                }</script>
+        </actions>
+    </service>
+</services>
